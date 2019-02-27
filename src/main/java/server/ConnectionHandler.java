@@ -32,9 +32,7 @@ public class ConnectionHandler implements Runnable {
 
 
     public ConnectionHandler(Socket socket) {
-
         addNewSocket(socket);
-
     }
 
     public void addNewSocket(Socket socket) {
@@ -53,31 +51,29 @@ public class ConnectionHandler implements Runnable {
     }
 
     public void run() {
-        while (true) {
-            synchronized (connectionDataList) {
-                for (ConnectionData in : connectionDataList) {
-                    String nextLine;
-                    try {
-                        if (in.inStream.ready()) {
-                            nextLine = in.inStream.readLine();
-                            System.out.println(nextLine);
-                            //Broadcast message to others
-                            for (ConnectionData connectionData : connectionDataList) {
-                                if (!connectionData.equals(in)) {
-                                    serverLogger.log(Level.INFO, String.valueOf(connectionData.socket.getPort()));
-                                    connectionData.outStream.println(String.valueOf(connectionData.socket.getPort()) + ": " + nextLine);
-                                }
+        while (true) synchronized (connectionDataList) {
+            for (ConnectionData in : connectionDataList) {
+                String nextLine;
+                try {
+                    if (in.inStream.ready()) {
+                        nextLine = in.inStream.readLine();
+                        System.out.println(nextLine);
+                        //Broadcast message to others
+                        for (ConnectionData connectionData : connectionDataList) {
+                            if (!connectionData.equals(in)) {
+                                serverLogger.log(Level.INFO, String.valueOf(connectionData.socket.getPort()));
+                                connectionData.outStream.println(String.valueOf(connectionData.socket.getPort()) + ": " + nextLine);
                             }
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
